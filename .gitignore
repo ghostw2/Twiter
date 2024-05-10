@@ -1,3 +1,4 @@
 data/
-./node/.env
+node/.env
 mongo-data
+docker-compose.yaml
