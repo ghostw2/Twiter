@@ -1,7 +1,47 @@
-import pg from 'pg';
-import express from 'express';
-import bodyParser from 'body-parser';
+const express = require("express")
+const mongoose =require("mongoose")
+const UserRouter = require("./routes/user")
 
+const mongoUser = process.env.DATABASE_USER;
+const mongoPassword = process.env.DATABASE_PASSWORD;
+const mongoHost = process.env.DATABASE_HOST;
+const mongoDatabase = process.env.DATABASE_NAME;
+
+const connectionString = `mongodb://${mongoUser}:${mongoPassword}@${mongoHost}`;
+
+mongoose.connect(connectionString, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  dbName:mongoDatabase
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((error) => {
+  console.error('Error connecting to MongoDB:', error);
+});
+
+//
+
+const app = express();
+
+app.use("/users", UserRouter)
+
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+// Catch-all middleware for unmatched routes
+app.use((req, res) => {
+  res.status(404).send('Not Found');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+/*
 
 const { Client } = pg;
 
@@ -62,4 +102,4 @@ app.get('/api/all', async (req, res) => {
     }
 });
 
-  app.listen(3000, () => console.log(`App running on port 3000.`));
+  app.listen(3000, () => console.log(`App running on port 3000.`));*/

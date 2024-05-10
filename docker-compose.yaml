@@ -14,15 +14,15 @@ services:
       - /usr/src/app/node_modules
     tty: true
     environment:
-      - DATABASE_HOST=db  # Set the hostname of the PostgreSQL container
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=1234
-      - DATABASE_NAME=postgres
+      - DATABASE_HOST=mongodb  # Set the hostname of the PostgreSQL container
+      - DATABASE_USER=twiter-user
+      - DATABASE_PASSWORD=your_admin_password_123
+      - DATABASE_NAME=twiter-app
     ports: 
       - "3000:3000"
     command: npm run start
     depends_on:
-       - db
+       - mongodb
 
   front-end:
     build: 
@@ -39,19 +39,21 @@ services:
       - "5175:5173"
     command: npm run dev
 
-  db:
-    image: postgres
-    container_name: twiter-db
+  mongodb:
+    image: mongo
+    container_name: twiter-mongodb
     restart: always
-    tty: true
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=twiter-user
+      - MONGO_INITDB_ROOT_PASSWORD=your_admin_password_123
+      - MONGO_INITDB_DATABASE=twiterdb
     volumes:
-      - ./data:/var/lib/postgresql/data
-    environment: 
-      - POSTGRES_PASSWORD=1234
-    ports: 
-      - "5432:5432"
-    networks: 
+      - ./mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
       - node-network
+
 
   nginx:
     build: 
@@ -60,7 +62,7 @@ services:
     restart: always
     tty: true
     ports: 
-      - "8000:80"
+      - "8085:80"
     networks: 
       - node-network
     depends_on:
