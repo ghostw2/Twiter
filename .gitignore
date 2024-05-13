@@ -2,3 +2,5 @@ data/
 node/.env
 mongo-data
 docker-compose.yaml
+react/mode_modules
+node/mode_modules

@@ -1,22 +1,39 @@
+
+const passport = require("passport");
 const User = require('../models/user');
 
-module.exports.createUser = async (req, res) => {
-    const { email, username, password } = req.body;
-    const user = new User({email,username,password});
-    await user.save();
+module.exports.login = (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            return res.status(401).json({ error: "Invalid username or password" });
+        }
+        req.login(user, (err) => {
+            if (err) {
+                return res.status(500).json({ error: "An error occurred" });
+            }
+            return res.status(200).json({ message: "Login Successful" })
+        });
+    })(req,res,next)
 }
-module.exports.deletUser = async (req, res) => {
-    const { id } = req.body;
-    await User.findByIdAndDelete(id);
+module.exports.logout = async (req, res) => {
+    req.logout();
+    res.status(200).json({message:"Log out successful"})
 }
-module.exports.insertUserTest = async (req, res) => {
-   const users =  await User.insertMany(
-        { email: "men2ri@mail.com", username: "m2enri", password: "password" },
-        { email: "am2arius@mail.com", username: "amar2ius", password: "password" }
-   );
-    res.json(users);
-}
-module.exports.getUsers = async (req, res) => {
-    const users = await User.find({});
-    res.json(users );
+module.exports.register = async (req, res, next) => {
+    try {
+        const { email, username, password } = req.body;
+
+        const exitstingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (exitstingUser) {
+            return res.status(400).json({ error: 'Username or email already exists' });
+        }
+        const newuser = new User({ email, username });
+        await User.register(newuser, password);
+        return res.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+        return res.status(500).json({ error: "An error occurred",message:error.message});
+    }
 }
