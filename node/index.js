@@ -1,40 +1,50 @@
 const express = require("express")
+const cors = require("cors");
 const mongoose = require("mongoose")
+const db = require("./db/db-conection");
+db.connectDb();
+
+
 const passport = require("passport")
-const LocalStrategy = require("passport-local").Strategy
 const session = require("express-session")
 const UserRouter = require("./routes/user")
 const User = require("./models/user")
 
-const mongoUser = process.env.DATABASE_USER;
-const mongoPassword = process.env.DATABASE_PASSWORD;
-const mongoHost = process.env.DATABASE_HOST;
-const mongoDatabase = process.env.DATABASE_NAME;
-
-const connectionString = `mongodb://${mongoUser}:${mongoPassword}@${mongoHost}`;
-
-mongoose.connect(connectionString, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  dbName:mongoDatabase
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch((error) => {
-  console.error('Error connecting to MongoDB:', error);
-});
-
-//
-
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({extended:true}))
 app.use(session({secret:"my_secret_key",resave:false,saveUninitialized:false}))
 app.use(passport.initialize());
 app.use(passport.session());
 app.use("/", UserRouter);
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
 
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+const jwtOptions = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: 'my_secret_key_123',
+};
+
+passport.use(new JwtStrategy(jwtOptions, function (jwtPayload, done) {
+  console.log(jwtPayload)
+  User.findById(jwtPayload.id).then(user => { 
+    if (user) {
+      return done(null, user);
+    } else {
+      return done(null, false);
+    }
+  }).catch(err => { 
+    return done(err, false);
+  })
+  
+}));
+
+app.use("/protected", passport.authenticate("jwt", { session: false }), (req,res) => {
+  res.json({
+    success: true,
+    message:"this is the the jwt middleware"
+  });
+});
 
 
 // Error handling middleware
