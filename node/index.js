@@ -4,6 +4,10 @@ const mongoose = require("mongoose")
 const db = require("./db/db-conection");
 db.connectDb();
 
+const corsOptions = {
+  origin: 'http://localhost:5175',
+  optionsSuccessStatus:200,
+}
 
 const passport = require("passport")
 const session = require("express-session")
@@ -12,7 +16,8 @@ const User = require("./models/user")
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({ extended: true }))
+app.use(cors(corsOptions))
 app.use(session({secret:"my_secret_key",resave:false,saveUninitialized:false}))
 app.use(passport.initialize());
 app.use(passport.session());
@@ -24,7 +29,7 @@ const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: 'my_secret_key_123',
 };
-
+ 
 passport.use(new JwtStrategy(jwtOptions, function (jwtPayload, done) {
   console.log(jwtPayload)
   User.findById(jwtPayload.id).then(user => { 

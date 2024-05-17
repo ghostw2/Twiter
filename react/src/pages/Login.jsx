@@ -3,7 +3,7 @@ import { useState } from "react";
 import LoginForm from "../components/LoginForm";
 
 const Login = () => {
-    return <div>
+    return <div className="container">
         <LoginForm />
     </div>
 }
