@@ -1,10 +1,14 @@
 import React from "react";
 import { useState } from "react";
+import PropTypes from 'prop-types';
 import axios from "axios";
-
-const LoginForm = () => {
+import { useNavigate } from "react-router-dom";
+const LoginForm = (props) => {
     const [username, setUsername]  = useState('');
-    const [password, setPassword]  = useState('');
+    const [password, setPassword] = useState('');
+    const {updateUser,updateToken} = props;
+    const navigate = useNavigate();
+
     const submit = (e) => {
         e.preventDefault();
         axios.post("http://localhost:3000/login",
@@ -13,7 +17,19 @@ const LoginForm = () => {
                 password:password
             }
         ).then(response => {
-            console.log(response);
+            console.log(response.data);
+            if (response.data.success === true) { 
+                updateUser(response.data.data.user);
+                updateToken(response.data.data.token);
+                useNavigate
+                console.log(response.data.message);
+                navigate('/')
+            }
+            else {
+                console.log(response.data.message);
+            }
+            
+            
         }).catch (error => {
             console.log(error);  
          })
@@ -32,5 +48,9 @@ const LoginForm = () => {
                 <button className="btn btn-primary" role="submit">Submit</button>
             </form>
         </div>
+}
+LoginForm.propTypes = {
+    updateToken: PropTypes.func.isRequired,
+    updateUser: PropTypes.func.isRequired,
 }
 export default LoginForm;
