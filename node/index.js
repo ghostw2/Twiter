@@ -2,12 +2,14 @@ const express = require("express")
 const cors = require("cors");
 const mongoose = require("mongoose")
 const db = require("./db/db-conection");
+const {Server} = require('socket.io');
 require('dotenv').config();
 db.connectDb();
 
 const corsOptions = {
   origin: ['http://localhost:5173','http://localhost:8085'],
-  optionsSuccessStatus:200,
+  optionsSuccessStatus: 200,
+  credentials:true
 }
 
 const passport = require("passport")
@@ -17,11 +19,25 @@ const User = require("./models/user")
 
 console.log("app started in " + process.env.NODE_ENV);
 
+const http = require('http')
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ['http://localhost:5173', 'http://localhost:8085'],
+    methods: ['GET', 'POST'],
+    
+    credentials: true,
+  },
+  transports: ['websocket', 'polling']
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(cors(corsOptions))
-app.use(session({secret:"my_secret_key",resave:false,saveUninitialized:false}))
+app.use(session({ secret: "my_secret_key", resave: false, saveUninitialized: false }))
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use("/", UserRouter);
@@ -46,6 +62,17 @@ passport.use(new JwtStrategy(jwtOptions, function (jwtPayload, done) {
   })
   
 }));
+io.on('connection', (socket) => {
+  console.log("New client connected");
+
+  socket.on('sendMessage', (message) => {
+    io.emit('reciveMessage', message);
+    console.log(`recived:${message}`)
+  })
+  socket.on('disconnect', () => {
+    console.log('Client disconnected')
+  })
+})
 
 app.use("/protected", passport.authenticate("jwt", { session: false }), (req,res) => {
   res.json({
@@ -53,6 +80,7 @@ app.use("/protected", passport.authenticate("jwt", { session: false }), (req,res
     message:"this is the the jwt middleware"
   });
 });
+
 
 
 // Error handling middleware
@@ -67,6 +95,6 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
