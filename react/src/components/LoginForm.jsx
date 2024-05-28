@@ -20,8 +20,10 @@ const LoginForm = ({updateAuth}) => {
             if (response.data.data.success === true) {
                 console.log(response.data.data.token)
                
-                updateAuth(response.data.data.token,response.data.data.user.username)
-                console.log(response.data.data.user.username);
+                updateAuth(response.data.data.token,
+                    response.data.data.user.username,
+                    response.data.data.user.id)
+                console.log(response.data.data.user.id);
                 navigate('/');
                 
             }

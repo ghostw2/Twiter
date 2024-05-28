@@ -19,7 +19,9 @@ const RegisterForm = () => {
         ).then(response => {
             if (response.data.success === true) {
                 
-                updateAuth(response.data.token,response.data.user.username)
+                updateAuth(response.data.token,
+                    response.data.user.username,
+                    response.data.user.id)
                 console.log(response.data.user.username);
                 navigate('/');
                 

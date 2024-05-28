@@ -6,20 +6,23 @@ export const AuthProvider = ({ children }) => {
     
     const [token, setToken] = useState(localStorage.getItem('token') || "");
     const [username, setUsername] = useState(localStorage.getItem('username') || '');
-
-    const updateAuth = (newToken,newUsername) => {
-        setToken(newToken);
-        setUsername(newUsername)
+    const [id,setId] = useState(localStorage.getItem('id') || '')
+    const updateAuth = (newToken,newUsername,newId) => {
+      setToken(newToken);
+      setUsername(newUsername)
+      setId(newId)
         if (newToken) {
-            localStorage.setItem('token', newToken);
-            localStorage.setItem('username', newUsername);
+          localStorage.setItem('token', newToken);
+          localStorage.setItem('username', newUsername);
+          localStorage.setItem('id',newId)
           } else {
-            localStorage.removeItem('token');
-            localStorage.removeItem('username');
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          localStorage.removeItem('id')
           }
 
     }
-    return (<AuthContext.Provider value={{ token,username, updateAuth }}>
+    return (<AuthContext.Provider value={{ token,username,id, updateAuth }}>
         {children}
     </AuthContext.Provider>);
 }
