@@ -9,8 +9,6 @@ const connectionString = `mongodb://${mongoUser}:${mongoPassword}@${mongoHost}`;
 
 module.exports.connectDb = () => {
     mongoose.connect(connectionString, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     dbName:mongoDatabase
   }).then(() => {
   }).catch((error) => {

@@ -8,24 +8,26 @@ import PostUser from "./components/PostUser";
 import GetAllUser from "./components/GetAllUser";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import { AuthProvider } from "./components/AuthContext"; 
 
 export default function App() {
-  const [user, setUser] = useState({});
-  const [jwtToken, setJwtToken] = useState('')
+  
   
 
   return (
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-          <Route index element={<Home user={user} />} />
+          <Route index element={<Home/>} />
           <Route path="post" element={<PostUser />} />
             <Route path="get" element={<GetAllUser />} />
-          <Route path="/login" element={<Login updateUser={setUser} updateToken={setJwtToken}  />} />
+          <Route path="/login" element={<Login  />} />
           <Route path="/register" element={<Register/>} />
           </Route>
         </Routes>
-        </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 const root = ReactDOM.createRoot(document.getElementById('root'));

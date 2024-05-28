@@ -2,10 +2,11 @@ const express = require("express")
 const cors = require("cors");
 const mongoose = require("mongoose")
 const db = require("./db/db-conection");
+require('dotenv').config();
 db.connectDb();
 
 const corsOptions = {
-  origin: 'http://localhost:5175',
+  origin: ['http://localhost:5173','http://localhost:8085'],
   optionsSuccessStatus:200,
 }
 
@@ -13,6 +14,8 @@ const passport = require("passport")
 const session = require("express-session")
 const UserRouter = require("./routes/user")
 const User = require("./models/user")
+
+console.log("app started in " + process.env.NODE_ENV);
 
 const app = express();
 app.use(express.json());

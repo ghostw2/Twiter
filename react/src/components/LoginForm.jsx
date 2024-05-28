@@ -1,12 +1,12 @@
 import React from "react";
 import { useState } from "react";
-import PropTypes from 'prop-types';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-const LoginForm = (props) => {
+
+const LoginForm = ({updateAuth}) => {
     const [username, setUsername]  = useState('');
     const [password, setPassword] = useState('');
-    const {updateUser,updateToken} = props;
+
     const navigate = useNavigate();
 
     const submit = (e) => {
@@ -18,12 +18,13 @@ const LoginForm = (props) => {
             }
         ).then(response => {
             console.log(response.data);
-            if (response.data.success === true) { 
-                updateUser(response.data.data.user);
-                updateToken(response.data.data.token);
-                useNavigate
-                console.log(response.data.message);
-                navigate('/')
+            if (response.data.data.success === true) {
+                console.log(response.data.data.token)
+               
+                updateAuth(response.data.data.token,response.data.data.user.username)
+                console.log(response.data.data.user.username);
+                navigate('/');
+                
             }
             else {
                 console.log(response.data.message);
@@ -49,8 +50,8 @@ const LoginForm = (props) => {
             </form>
         </div>
 }
-LoginForm.propTypes = {
-    updateToken: PropTypes.func.isRequired,
-    updateUser: PropTypes.func.isRequired,
-}
+// LoginForm.propTypes = {
+//     updateToken: PropTypes.func.isRequired,
+//     updateUser: PropTypes.func.isRequired,
+// }
 export default LoginForm;
