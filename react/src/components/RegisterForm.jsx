@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 const RegisterForm = () => {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+    const {updateAuth} = useAuth();
     const submit = (e) => {
         e.preventDefault();
         axios.post("http://localhost:3000/register",
@@ -13,10 +17,16 @@ const RegisterForm = () => {
                 password:password
             }
         ).then(response => {
-            console.log(response);
+            if (response.data.success === true) {
+                
+                updateAuth(response.data.token,response.data.user.username)
+                console.log(response.data.user.username);
+                navigate('/');
+                
+            }
         }).catch (error => {
-            console.log(error);  
-         })
+            console.log(error.message);  
+        })
     }
     return <div>
         <p className="h2">Register</p>

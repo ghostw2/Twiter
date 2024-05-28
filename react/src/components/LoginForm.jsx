@@ -17,7 +17,6 @@ const LoginForm = ({updateAuth}) => {
                 password:password
             }
         ).then(response => {
-            console.log(response.data);
             if (response.data.data.success === true) {
                 console.log(response.data.data.token)
                
@@ -32,7 +31,7 @@ const LoginForm = ({updateAuth}) => {
             
             
         }).catch (error => {
-            console.log(error);  
+            console.log(error.message);  
          })
     }
     return <div>
