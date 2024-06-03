@@ -2,7 +2,7 @@ const express = require("express")
 const cors = require("cors");
 const mongoose = require("mongoose")
 const db = require("./db/db-conection");
-const {Server} = require('socket.io');
+
 require('dotenv').config();
 db.connectDb();
 
@@ -22,15 +22,9 @@ console.log("app started in " + process.env.NODE_ENV);
 const http = require('http')
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: ['http://localhost:5173', 'http://localhost:8085'],
-    methods: ['GET', 'POST'],
-    
-    credentials: true,
-  },
-  transports: ['websocket', 'polling']
-});
+const mountIoListener = require('./controllers/Chat')
+
+const io = mountIoListener(server)
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
@@ -62,17 +56,7 @@ passport.use(new JwtStrategy(jwtOptions, function (jwtPayload, done) {
   })
   
 }));
-io.on('connection', (socket) => {
-  console.log("New client connected");
 
-  socket.on('sendMessage', (message) => {
-    io.emit('reciveMessage', message);
-    console.log(`recived:${message}`)
-  })
-  socket.on('disconnect', () => {
-    console.log('Client disconnected')
-  })
-})
 
 app.use("/protected", passport.authenticate("jwt", { session: false }), (req,res) => {
   res.json({
