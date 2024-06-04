@@ -4,15 +4,6 @@ const jwt = require('jsonwebtoken');
 const Chat = require('../models/Chat');
 const ChatMessage = require("../models/ChatMessage");
 require('dotenv').config();
-const loadChats = async (id) => {
-    try { 
-        const chats = await Chat.find({ recivers: id });
-        return chats;
-    }catch (e) {
-        console.log(e.message)
-     }
-}
-
 const mountIoListener = (server) => {
    
     const io = new Server(server, {
@@ -43,27 +34,25 @@ const mountIoListener = (server) => {
         
     })
     io.on('connection', (socket) => {
-          io.emit('chatsLoaded',loadChats(socket.user.id))
-          console.log("New client connected");
-          console.log(socket.user)
-        
           socket.on('sendMessage', async (message) => {
               const chatId = message.chat_id;
+              const sender = message.sender;
+              const text = message.text;
               if (chatId) {
                   const chat = await Chat.findById(chatId)
               }
               else {
                   const chat = new Chat({
-                      recivers: [message.sender]
+                      recivers: [sender]
                   });
                   await chat.save();
-                  const message = new ChatMessage({
-                    chat_id: message.chat_id,
-                    sender: message.sender,
-                    text: message.text,
-                    createdAt: new Date(),
+                  const newMessage = new ChatMessage({
+                    chat_id: chat.id,
+                    sender: sender,
+                    message: text,
+                    createdAt: new Date()
                   });
-                   await ChatMessage.save()
+                   await newMessage.save()
               }
               io.emit('receiveMessage', message);
               console.log(message)

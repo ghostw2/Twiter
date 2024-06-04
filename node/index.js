@@ -14,7 +14,9 @@ const corsOptions = {
 
 const passport = require("passport")
 const session = require("express-session")
+
 const UserRouter = require("./routes/user")
+const ChatRouter = require("./routes/chat")
 const User = require("./models/user")
 
 console.log("app started in " + process.env.NODE_ENV);
@@ -22,7 +24,7 @@ console.log("app started in " + process.env.NODE_ENV);
 const http = require('http')
 const app = express();
 const server = http.createServer(app);
-const mountIoListener = require('./controllers/Chat')
+const mountIoListener = require("./services/Chat")
 
 const io = mountIoListener(server)
 
@@ -34,7 +36,10 @@ app.use(session({ secret: "my_secret_key", resave: false, saveUninitialized: fal
 
 app.use(passport.initialize());
 app.use(passport.session());
+
 app.use("/", UserRouter);
+app.use('/chat', ChatRouter);
+
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 

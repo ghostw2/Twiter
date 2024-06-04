@@ -14,10 +14,18 @@ const ChatElement = ({id,token}) => {
   
   const socketRef = useRef();
   const axiosInstance = useAxios();
+  const changeChat = (chat_id)=>{
+    setCurrentChat(chatList.find((chat) => chat._id === chat_id));
+    console.log(currentChat);
+  }
   useEffect(() => {
 
-      axiosInstance.get('/users').then((response) => {
+      axiosInstance.get('/chat').then((response) => {
         console.log(response)
+        if (response.status === 200) {
+          setChatList(response.data.chats);
+        }
+        
       }).catch((e) => {
         alert(e.message);
       });
@@ -33,12 +41,11 @@ const ChatElement = ({id,token}) => {
     });
 
     socketRef.current.on('connect', () => {
-      console.log(token)
       socketRef.current.emit('loadChats')
     });
 
     socketRef.current.on('receiveMessage', (message) => {
-      console.log( message);
+    
       setMessageList((prevMessageList) => [...prevMessageList, message]);
     });
 
@@ -73,11 +80,12 @@ const ChatElement = ({id,token}) => {
               />
             </div>
             <ul className="list-group mt-4">
-              <li className="list-group-item"><a href='#'>Cras justo odio</a></li>
-              <li className="list-group-item"><a href='#'>Dapibus ac facilisis in</a></li>
-              <li className="list-group-item"><a href='#'>Morbi leo risus</a></li>
-              <li className="list-group-item"><a href='#'>Porta ac consectetur ac</a></li>
-              <li className="list-group-item"><a href='#'>Vestibulum at eros</a></li>
+
+              {chatList.map((chat, index) => (
+               <li role='button' key={index}  className="list-group-item " >
+                  <a onClick={(e) => { e.preventDefault; setCurrentChat(chat); }} >this is chat #{chat._id}</a>
+                </li>
+              ))}
             </ul>
           </div>
           <div className='col-md-8 col-12 bg-white'>
