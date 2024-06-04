@@ -1,5 +1,6 @@
 import React, { useState, useEffect,useRef } from 'react';
 import io from 'socket.io-client';
+import useAxios from '../helpers/axiosConfig';
 
 const SOCKET_SERVER_URL = "http://localhost:3000";
 
@@ -12,8 +13,16 @@ const ChatElement = ({id,token}) => {
   const [currentChat, setCurrentChat] = useState('')
   
   const socketRef = useRef();
-
+  const axiosInstance = useAxios();
   useEffect(() => {
+
+      axiosInstance.get('/users').then((response) => {
+        console.log(response)
+      }).catch((e) => {
+        alert(e.message);
+      });
+    
+    
     
     socketRef.current = io(SOCKET_SERVER_URL, {
       withCredentials: true,  // Allow credentials
