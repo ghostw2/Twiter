@@ -1,44 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import io from 'socket.io-client';
 
-const SOCKET_SERVER_URL = "ws://localhost:3000";
+const SOCKET_SERVER_URL = "http://localhost:3000";
 
-const ChatElement = () => {
+const ChatElement = ({id,token}) => {
+
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('sdfsfs');
   const [messageList, setMessageList] = useState([]);
+  const [chatList, setChatList] = useState([]) 
+  const [currentChat, setCurrentChat] = useState('')
+  
+  const socketRef = useRef();
 
   useEffect(() => {
-    const socket = io(SOCKET_SERVER_URL, {
+    
+    socketRef.current = io(SOCKET_SERVER_URL, {
       withCredentials: true,  // Allow credentials
+      auth: {
+        token
+      },
       transports: ['websocket', 'polling'],  // Use both polling and websocket
     });
 
-    socket.on('connect', () => {
-      console.log('Connected to socket server');
+    socketRef.current.on('connect', () => {
+      console.log(token)
+      socketRef.current.emit('loadChats')
     });
 
-    socket.on('receiveMessage', (message) => {
-      console.log('Message received:', message);
+    socketRef.current.on('receiveMessage', (message) => {
+      console.log( message);
       setMessageList((prevMessageList) => [...prevMessageList, message]);
     });
 
+    socketRef.current.on('chatsLoaded', (data) => { 
+      console.log("these are the chatList",data);
+      setChatList(data);
+    });
     // Cleanup on component unmount
     return () => {
-      socket.disconnect();
+      socketRef.current.disconnect();
     };
-  }, []);
+  }, [token]);
 
   const sendMessage = () => {
-    const socket = io(SOCKET_SERVER_URL);  // re-initialize socket inside sendMessage
-    socket.emit('sendMessage', message);
-    setMessageList((prevMessageList) => [...prevMessageList, message]);
-    setMessage("");
+   // const socket = io(SOCKET_SERVER_URL);  // re-initialize socket inside sendMessage
+   socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
+    setMessage('')
   };
 
   return (
     <div>
-      <p className='h2'>This is the chat!</p>
       <div className='container bg-light p-3'>
         <div className='row'>
           <div className='col-md-4 col-12'>
@@ -64,9 +76,21 @@ const ChatElement = () => {
               {messageList.map((msg, index) => (
                 <div key={index} className='col-12'>
                   <div className='row'>
-                    <div className={`col-6 ${msg.sentByUser ? 'text-right' : ''} rounded-pill p-2 px-3`} style={{ backgroundColor: msg.sentByUser ? 'green' : 'red' }}>
-                      <span>{msg}</span>
-                    </div>
+                    {
+                      msg.sender === id && (
+                        <div className='col-6 offset-6 rounded-pill p-2 px-3' style={{backgroundColor:'green'}}>
+                          <span>{msg.text}</span>
+                        </div>
+                      ) 
+                    }
+                    {
+                      msg.sender !== id && (
+                        <div className={`col-6 rounded-pill p-2 px-3`} style={{ backgroundColor: 'red' }}>
+                          <span>{msg.text}</span>
+                        </div>
+                      )
+                    }
+                    
                     <div className='col-6'></div>
                   </div>
                 </div>

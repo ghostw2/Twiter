@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     const updateAuth = (newToken,newUsername,newId) => {
       setToken(newToken);
       setUsername(newUsername)
-      setId(newId)
+      setId(newId)  
         if (newToken) {
           localStorage.setItem('token', newToken);
           localStorage.setItem('username', newUsername);

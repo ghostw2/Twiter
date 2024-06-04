@@ -13,7 +13,14 @@ const generateToken = (user) => {
     return token;
 }
 
-
+module.exports.loadAll = async () => {
+    try {
+        const users = await User.find({});
+        return users;
+    } catch (e) {
+        console.log(e);
+    }
+}
 module.exports.login = async (req, res, next) => {
     try {
         const user = await User.findOne({ username: req.body.username }).select('+password');
