@@ -25,7 +25,7 @@ const mountIoListener = (server) => {
                 console.log(decoded)
                 socket.user = decoded;
                 socket.join(decoded.id)
-                console.log(`user with id :${decoded.id} just connected to the chat `)
+                //console.log(`user with id :${decoded.id} just connected to the chat `)
                 next();
             });
         } else {
@@ -38,8 +38,18 @@ const mountIoListener = (server) => {
               const chatId = message.chat_id;
               const sender = message.sender;
               const text = message.text;
+              let createdMessage = null;
               if (chatId) {
                   const chat = await Chat.findById(chatId)
+                  if (chat) {
+                    const newMessage = new ChatMessage({
+                        chat_id: chat.id,
+                        sender: sender,
+                        message: text,
+                        createdAt: new Date()
+                      });
+                      createdMessage = await newMessage.save()
+                  }
               }
               else {
                   const chat = new Chat({
@@ -52,10 +62,9 @@ const mountIoListener = (server) => {
                     message: text,
                     createdAt: new Date()
                   });
-                   await newMessage.save()
+                   createdMessage = await newMessage.save()
               }
-              io.emit('receiveMessage', message);
-              console.log(message)
+              io.emit('receiveMessage', createdMessage);
           })
           socket.on('selectChat', async (data) => {
               const chatId = data.chat_id;

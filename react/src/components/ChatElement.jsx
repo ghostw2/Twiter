@@ -7,31 +7,54 @@ const SOCKET_SERVER_URL = "http://localhost:3000";
 const ChatElement = ({id,token}) => {
 
   const [search, setSearch] = useState('');
-  const [message, setMessage] = useState('sdfsfs');
+  const [message, setMessage] = useState('enter you text here');
   const [messageList, setMessageList] = useState([]);
-  const [chatList, setChatList] = useState([]) 
-  const [currentChat, setCurrentChat] = useState('')
+  const [chatList, setChatList] = useState([]); 
+  const [currentChat, setCurrentChat] = useState('');
+  const [userList, setUserList] = useState([]);
   
+
   const socketRef = useRef();
   const axiosInstance = useAxios();
-  const changeChat = (chat_id)=>{
-    setCurrentChat(chatList.find((chat) => chat._id === chat_id));
-    console.log(currentChat);
-  }
+  
+
+  useEffect(() => {
+    axiosInstance.get('/users').then((response) => {
+      if (response.status === 200) {
+        setUserList(response.data.users);
+      }
+      
+    }).catch((e) => {
+      alert(e.message);
+    });
+  },[])
+  useEffect(() => {
+    
+    axiosInstance.get('/chat').then((response) => {
+      if (response.status === 200) {
+        setChatList(response.data.chats);
+      }
+      
+    }).catch((e) => {
+      alert(e.message);
+    });
+  },[])
+  useEffect(() => {
+    console.log(currentChat)
+    axiosInstance.get('/chat/messages',
+      {
+        params: { id: currentChat }
+      }).then((response) => {
+      if (response.status === 200) {
+        setMessageList(response.data.messages);
+      }
+    }).catch((e) => {
+      alert(e.message);
+    });
+  },[currentChat])
+
   useEffect(() => {
 
-      axiosInstance.get('/chat').then((response) => {
-        console.log(response)
-        if (response.status === 200) {
-          setChatList(response.data.chats);
-        }
-        
-      }).catch((e) => {
-        alert(e.message);
-      });
-    
-    
-    
     socketRef.current = io(SOCKET_SERVER_URL, {
       withCredentials: true,  // Allow credentials
       auth: {
@@ -45,7 +68,6 @@ const ChatElement = ({id,token}) => {
     });
 
     socketRef.current.on('receiveMessage', (message) => {
-    
       setMessageList((prevMessageList) => [...prevMessageList, message]);
     });
 
@@ -64,12 +86,24 @@ const ChatElement = ({id,token}) => {
    socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
     setMessage('')
   };
+  const newChat = () => {
+    const selectedusers = [...userList.filter(user => user.selected === true).map(user=>user._id),id]
+    axiosInstance.post('/chat/new',
+      {
+        revivers:selectedusers
+      }
+    ).then(response => {
+      console.log(response);
+    }).catch(e => {
+      console.log(e.message)
+    })
+  }
 
   return (
     <div>
       <div className='container bg-light p-3'>
         <div className='row'>
-          <div className='col-md-4 col-12'>
+          <div className='col-md-3 col-12'>
             <div className='w-75 mx-auto'>
               <input
                 type="text"
@@ -82,13 +116,13 @@ const ChatElement = ({id,token}) => {
             <ul className="list-group mt-4">
 
               {chatList.map((chat, index) => (
-               <li role='button' key={index}  className="list-group-item " >
-                  <a onClick={(e) => { e.preventDefault; setCurrentChat(chat); }} >this is chat #{chat._id}</a>
+               <li role='button' key={index}  className="list-group-item p-4" >
+                  <a onClick={(e) => { e.preventDefault(); setCurrentChat(chat._id); }} >this is chat #{chat._id}</a>
                 </li>
               ))}
             </ul>
           </div>
-          <div className='col-md-8 col-12 bg-white'>
+          <div className='col-md-6 col-12 bg-white'>
             <div className='row p-2 rounded-3'>
               {messageList.map((msg, index) => (
                 <div key={index} className='col-12'>
@@ -96,14 +130,14 @@ const ChatElement = ({id,token}) => {
                     {
                       msg.sender === id && (
                         <div className='col-6 offset-6 rounded-pill p-2 px-3' style={{backgroundColor:'green'}}>
-                          <span>{msg.text}</span>
+                          <span>{msg.message}</span>
                         </div>
                       ) 
                     }
                     {
                       msg.sender !== id && (
                         <div className={`col-6 rounded-pill p-2 px-3`} style={{ backgroundColor: 'red' }}>
-                          <span>{msg.text}</span>
+                          <span>{msg.message}</span>
                         </div>
                       )
                     }
@@ -122,6 +156,15 @@ const ChatElement = ({id,token}) => {
                 <button onClick={sendMessage}>Send</button>
               </div>
             </div>
+          </div>
+          <div className='col-md-3 col-12'>
+            <ul className="list-group mt-4">
+              {userList.map((user, index) => (
+                <li key={user._id}>
+                    {user.username}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

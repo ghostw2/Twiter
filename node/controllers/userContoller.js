@@ -13,10 +13,13 @@ const generateToken = (user) => {
     return token;
 }
 
-module.exports.loadAll = async () => {
+module.exports.loadAll = async (req,res,next) => {
     try {
         const users = await User.find({});
-        return users;
+        return res.status(200).json({
+            success: false,
+            users
+        });
     } catch (e) {
         console.log(e);
     }

@@ -15,8 +15,8 @@ const corsOptions = {
 const passport = require("passport")
 const session = require("express-session")
 
-const UserRouter = require("./routes/user")
-const ChatRouter = require("./routes/chat")
+const UserRouter = require("./routes/userRouter")
+const ChatRouter = require("./routes/chatRouter")
 const User = require("./models/user")
 
 console.log("app started in " + process.env.NODE_ENV);
@@ -24,7 +24,7 @@ console.log("app started in " + process.env.NODE_ENV);
 const http = require('http')
 const app = express();
 const server = http.createServer(app);
-const mountIoListener = require("./services/Chat")
+const mountIoListener = require("./socketControllers/ChatSocketController")
 
 const io = mountIoListener(server)
 
