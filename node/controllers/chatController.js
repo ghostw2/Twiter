@@ -21,12 +21,15 @@ module.exports.loadById = async (req,res,next) => {
 module.exports.createChat = async (req, res, nex) => {
     
     try {
+        console.log(req.body)
+        const { recivers } = req.body;
         const chat = new Chat({
-            recivers: users
+            recivers: recivers
         });
         chat.save();
         return res.status(201).json({
-            error: false
+            error: false,
+            chat:chat
         });
     } catch (e) {
         return res.status(500).json({

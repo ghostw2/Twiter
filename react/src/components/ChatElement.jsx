@@ -1,6 +1,7 @@
 import React, { useState, useEffect,useRef } from 'react';
 import io from 'socket.io-client';
 import useAxios from '../helpers/axiosConfig';
+import NewChatModal from './NewChat';
 
 const SOCKET_SERVER_URL = "http://localhost:3000";
 
@@ -11,23 +12,11 @@ const ChatElement = ({id,token}) => {
   const [messageList, setMessageList] = useState([]);
   const [chatList, setChatList] = useState([]); 
   const [currentChat, setCurrentChat] = useState('');
-  const [userList, setUserList] = useState([]);
-  
+ 
 
   const socketRef = useRef();
   const axiosInstance = useAxios();
-  
 
-  useEffect(() => {
-    axiosInstance.get('/users').then((response) => {
-      if (response.status === 200) {
-        setUserList(response.data.users);
-      }
-      
-    }).catch((e) => {
-      alert(e.message);
-    });
-  },[])
   useEffect(() => {
     
     axiosInstance.get('/chat').then((response) => {
@@ -38,8 +27,9 @@ const ChatElement = ({id,token}) => {
     }).catch((e) => {
       alert(e.message);
     });
-  },[])
+  }, []);
   useEffect(() => {
+    if (currentChat === '') return;
     console.log(currentChat)
     axiosInstance.get('/chat/messages',
       {
@@ -86,21 +76,11 @@ const ChatElement = ({id,token}) => {
    socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
     setMessage('')
   };
-  const newChat = () => {
-    const selectedusers = [...userList.filter(user => user.selected === true).map(user=>user._id),id]
-    axiosInstance.post('/chat/new',
-      {
-        revivers:selectedusers
-      }
-    ).then(response => {
-      console.log(response);
-    }).catch(e => {
-      console.log(e.message)
-    })
-  }
+  
 
   return (
     <div>
+      
       <div className='container bg-light p-3'>
         <div className='row'>
           <div className='col-md-3 col-12'>
@@ -112,6 +92,9 @@ const ChatElement = ({id,token}) => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+            </div>
+            <div>
+             <NewChatModal id={id}></NewChatModal>
             </div>
             <ul className="list-group mt-4">
 
@@ -157,15 +140,7 @@ const ChatElement = ({id,token}) => {
               </div>
             </div>
           </div>
-          <div className='col-md-3 col-12'>
-            <ul className="list-group mt-4">
-              {userList.map((user, index) => (
-                <li key={user._id}>
-                    {user.username}
-                </li>
-              ))}
-            </ul>
-          </div>
+          
         </div>
       </div>
     </div>

@@ -22,9 +22,9 @@ const mountIoListener = (server) => {
                     console.log("There is an error in the token verification "+ err.message)
                     socket.disconnect();
                 }
-                console.log(decoded)
-                socket.user = decoded;
-                socket.join(decoded.id)
+                //console.log(decoded)
+                //socket.user = decoded;
+               // socket.join(decoded.id)
                 //console.log(`user with id :${decoded.id} just connected to the chat `)
                 next();
             });
@@ -34,6 +34,20 @@ const mountIoListener = (server) => {
         
     })
     io.on('connection', (socket) => {
+        const token = socket.handshake.auth.token
+        console.log(token);
+        if (token) {
+            jwt.verify(token.split(" ")[1], process.env.BACK_END_SECRET_KEY, (err, decoded) => {
+                if (err) {
+                    console.log("There is an error in the token verification " + err.message)
+                    socket.disconnect();
+                }
+                //console.log(decoded)
+              
+                socket.join(decoded.id)
+               
+            });
+        }
           socket.on('sendMessage', async (message) => {
               const chatId = message.chat_id;
               const sender = message.sender;
@@ -49,22 +63,18 @@ const mountIoListener = (server) => {
                         createdAt: new Date()
                       });
                       createdMessage = await newMessage.save()
+                    console.log( chat)
+                      chat.recivers.forEach((user => {
+                            io.to(user.toString()).emit('receiveMessage', createdMessage);
+                            console.log(user)
+                        }))
+                        
+                        console.log(sender);
                   }
+
               }
-              else {
-                  const chat = new Chat({
-                      recivers: [sender]
-                  });
-                  await chat.save();
-                  const newMessage = new ChatMessage({
-                    chat_id: chat.id,
-                    sender: sender,
-                    message: text,
-                    createdAt: new Date()
-                  });
-                   createdMessage = await newMessage.save()
-              }
-              io.emit('receiveMessage', createdMessage);
+              
+              
           })
           socket.on('selectChat', async (data) => {
               const chatId = data.chat_id;
@@ -72,7 +82,8 @@ const mountIoListener = (server) => {
               const chatMessages = [];
             if (chatId) {
                 chat = await Chat.findById(chatId)
-                chatMessages = await ChatMessage.find({chat:chatId})
+                chatMessages = await ChatMessage.find({ chat: chatId })
+                console.log("joined chat ",chatId)
             }
             else {
                 chat = new Chat({
