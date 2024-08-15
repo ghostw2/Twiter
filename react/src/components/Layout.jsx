@@ -2,7 +2,7 @@ import { Button } from "bootstrap";
 import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 const Layout = () => {
-  const { updateAuth } = useAuth();
+ // const { updateAuth } = useAuth();
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -25,7 +25,7 @@ const Layout = () => {
             <Link className="nav-link" to="/chat">Chat</Link>
             </li>
           </ul>
-          <button className="btn btn-danger" onClick={()=>{updateAuth(null,null,null)}}>Log Out</button>
+          {/* <button className="btn btn-danger" onClick={()=>{updateAuth(null,null,null)}}>Log Out</button> */}
         </div>
       </nav>
       <Outlet />

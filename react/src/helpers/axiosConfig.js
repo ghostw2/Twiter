@@ -1,14 +1,15 @@
 import axios from "axios";
-import { useAuth } from "../components/AuthContext";
-
+//import { useAuth } from "../components/AuthContext";
+import { useSelector } from "react-redux";
 
 const useAxios = () => {
-    const { token } = useAuth();
+    const { userToken } = useSelector((state) => state.auth);//needs to be changed when using redux
+    console.log('this is the user token',userToken)
     const axiosInstance = axios.create({ baseURL: "http://localhost:3000" });
     axiosInstance.interceptors.request.use(
         (config)=>{
-            if (token) {
-                config.headers.Authorization = token;
+            if (userToken) {
+                config.headers.Authorization = userToken;
             }
             return config;
         },

@@ -1,11 +1,12 @@
 import React from "react";
 import { useAuth } from "./AuthContext";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 const Home = () => {
-  const { username,id,token } = useAuth();
-  const greeting = (username != '') ?
-    `Hello there,${username} your user id is :${id} and the token is ${token}`
-    :
+  const { userInfo,userToken } = useSelector((state)=>state.auth);
+  const greeting =
+    `Hello there, your user Name  is :${userInfo.username} and the userId is ${userInfo.id}`;
+    
     <div className="container">
       <div>
         <Link className="nav-link btn btn-primary btn-lg" to="/login">Login</Link>

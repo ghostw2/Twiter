@@ -2,21 +2,22 @@ import React, { useState, useEffect,useRef } from 'react';
 import io from 'socket.io-client';
 import useAxios from '../helpers/axiosConfig';
 import NewChatModal from './NewChat';
+import useWebSocket, { ReadyState } from 'react-use-websocket'
 
-const SOCKET_SERVER_URL = "http://localhost:3000";
+const SOCKET_SERVER_URL = "ws://localhost:3000";
 
-const ChatElement = ({id,token}) => {
-
+const ChatElement = ({userInfo,token}) => {
+  
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('enter you text here');
   const [messageList, setMessageList] = useState([]);
   const [chatList, setChatList] = useState([]); 
   const [currentChat, setCurrentChat] = useState('');
  
-
-  const socketRef = useRef();
+  //const socketRef = useRef();
   const axiosInstance = useAxios();
-
+  const connection = useRef(null);
+  
   useEffect(() => {
     
     axiosInstance.get('/chat').then((response) => {
@@ -41,40 +42,86 @@ const ChatElement = ({id,token}) => {
     }).catch((e) => {
       alert(e.message);
     });
-  },[currentChat])
-
+  }, [currentChat])
   useEffect(() => {
+    const socket = new WebSocket(SOCKET_SERVER_URL);
+    socket.addEventListener('open', (event) => {
+      console.log('websocker opened');
+    })
+    socket.addEventListener('message', (event) => {
+      console.log('message form server:'+event.data)
+    })
+    socket.addEventListener('userConnected', (event) => {
+      console.log("New user connected"+event.data);
+    })
+    socket.addEventListener('UserDisconnected', (event) => {
+      console.log('User disconnected'+event.data)
+    })
+    connection.current = socket
+    return () => connection.current.close()
+  },[])
 
-    socketRef.current = io(SOCKET_SERVER_URL, {
-      withCredentials: true,  // Allow credentials
-      auth: {
-        token
-      },
-      transports: ['websocket', 'polling'],  // Use both polling and websocket
-    });
+  //useEffect(() => {
+    // console.log('Connection state changed')
+    // if (readyState === ReadyState.OPEN) { 
+    //   sendJsonMessage({
+    //     event: "subscripe",
+    //     data:{channel:"this is the channel"}
+    //   })
+    // }
 
-    socketRef.current.on('connect', () => {
-      socketRef.current.emit('loadChats')
-    });
+  //  const socketRef = useWebSocket(SOCKET_SERVER_URL, {
+  //     onOpen: ()=>{
+  //       console.log("WebSocket connection established.")
+  //     },
+  //     onMessage: (event) => {
+  //       console.log(event)
+  //     },
+  //     onClose: () => {
+  //       console.log('disconected ws')
+  //     }
+  //   })
+  //   socketRef.close();
+    
+    
+    // io(SOCKET_SERVER_URL, {
+    //   withCredentials: true,  // Allow credentials
+    //   auth: {
+    //     token
+    //   },
+    //   transports: ['websocket', 'polling'],  // Use both polling and websocket
+    // });
 
-    socketRef.current.on('receiveMessage', (message) => {
-      setMessageList((prevMessageList) => [...prevMessageList, message]);
-    });
+    // socketRef.current.on('connect', () => {
+    //   socketRef.current.emit('loadChats')
+    // });
 
-    socketRef.current.on('chatsLoaded', (data) => { 
-      console.log("these are the chatList",data);
-      setChatList(data);
-    });
-    // Cleanup on component unmount
-    return () => {
-      socketRef.current.disconnect();
-    };
-  }, [token]);
+    // socketRef.current.on('receiveMessage', (message) => {
+    //   setMessageList((prevMessageList) => [...prevMessageList, message]);
+    // });
+
+    // socketRef.current.on('chatsLoaded', (data) => { 
+    //   console.log("these are the chatList",data);
+    //   setChatList(data);
+    // });
+    // // Cleanup on component unmount
+    // return () => {
+    //   socketRef.current.disconnect();
+    // };
+  // }, [readyState]);
 
   const sendMessage = () => {
+    setMessage(message.trim())
+    if(connection.current && connection.current.ReadyState === WebSocket.ReadyState){
+      if (message !== "") { 
+        connection.current.send(JSON.parse({ message: { text: message, chat_id: currentChat, sender: userInfo.id }, token: token }));
+        }
+    }
+    setMessage("")
+    console.log(token)
    // const socket = io(SOCKET_SERVER_URL);  // re-initialize socket inside sendMessage
-   socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
-    setMessage('')
+  //  socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
+  //   setMessage('')
   };
   
 
@@ -94,7 +141,7 @@ const ChatElement = ({id,token}) => {
               />
             </div>
             <div>
-             <NewChatModal id={id}></NewChatModal>
+             <NewChatModal id={userInfo.id}></NewChatModal>
             </div>
             <ul className="list-group mt-4">
 
@@ -111,14 +158,14 @@ const ChatElement = ({id,token}) => {
                 <div key={index} className='col-12'>
                   <div className='row'>
                     {
-                      msg.sender === id && (
+                      msg.sender === userInfo.id && (
                         <div className='col-6 offset-6 rounded-pill p-2 px-3' style={{backgroundColor:'green'}}>
                           <span>{msg.message}</span>
                         </div>
                       ) 
                     }
                     {
-                      msg.sender !== id && (
+                      msg.sender !== userInfo.id && (
                         <div className={`col-6 rounded-pill p-2 px-3`} style={{ backgroundColor: 'red' }}>
                           <span>{msg.message}</span>
                         </div>

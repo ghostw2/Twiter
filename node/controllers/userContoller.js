@@ -3,6 +3,7 @@ const passport = require("passport");
 const User = require('../models/user');
 const jwt = require("jsonwebtoken");
 const argon2 = require('argon2');
+const user = require("../models/user");
 
 const generateToken = (user) => {
     const payload = {
@@ -46,7 +47,7 @@ module.exports.login = async (req, res, next) => {
         const token = generateToken(user);
         
         return res.status(200).json({
-            data: {
+            
                 success: true,
                 user: {
                     id: user.id,
@@ -54,7 +55,7 @@ module.exports.login = async (req, res, next) => {
                     email: user.email
                 },
                 token: "bearer " + token
-            }
+            
         });
     } catch (error) {
         console.error(error);
@@ -64,6 +65,39 @@ module.exports.login = async (req, res, next) => {
         });
     }
 };
+module.exports.retrive = async (req, res, next) => {
+    try {
+        console.log(req.headers.authorization)
+        token = req.headers.authorization
+        if (token) {
+            jwt.verify(token.split(" ")[1], process.env.BACK_END_SECRET_KEY, (err, decoded) => {
+                if (err) {
+                    return res.status(200).json({
+                        success: false,
+                        user:null
+                    })
+                } else {
+                    return res.status(200).json({
+                        success: true,
+                        user:decoded
+                    })
+                }
+
+            })
+        } else {
+            res.status(500).json(
+                {
+                    success:false
+                }
+            )
+        }
+    } catch (e) {
+        return res.status(500).json({
+            success: false,
+            message:e.message
+        })
+    }
+}
 module.exports.logout = async (req, res) => {
     req.logout();
     res.status(200).json({message:"Log out successful"})

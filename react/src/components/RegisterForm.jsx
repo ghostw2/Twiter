@@ -2,35 +2,51 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../feature/auth/AuthSlice";
+import { useSelector, useDispatch } from 'react-redux';
 const RegisterForm = () => {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
-    const {updateAuth} = useAuth();
+    const dispatch = useDispatch()
+    const {
+        loading,userInfo,error,succes,userToken
+    } = useSelector(
+        (state)=>state.auth
+        )
+    
+   // const {updateAuth} = useAuth();
     const submit = (e) => {
         e.preventDefault();
-        axios.post("http://localhost:3000/register",
-            {
-                email: email,
-                username: username,
-                password:password
-            }
-        ).then(response => {
-            if (response.data.success === true) {
+        dispatch(registerUser({
+            email: email,
+            username: username,
+            password: password
+        }));
+        
+
+        // axios.post("http://localhost:3000/register",
+        //     {
+        //         email: email,
+        //         username: username,
+        //         password:password
+        //     }
+        // ).then(response => {
+        //     if (response.data.success === true) {
                 
-                updateAuth(response.data.token,
-                    response.data.user.username,
-                    response.data.user.id)
-                console.log(response.data.user.username);
-                navigate('/');
+        //         updateAuth(response.data.token,
+        //             response.data.user.username,
+        //             response.data.user.id)
+        //         console.log(response.data.user.username);
+        //         navigate('/');
                 
-            }
-        }).catch (error => {
-            console.log(error.message);  
-        })
+        //     }
+        // }).catch (error => {
+        //     console.log(error.message);  
+        // })
     }
-    return <div>
+    return <div>{userToken}
         <p className="h2">Register</p>
             <form className="form-control" onSubmit={submit}>
                 <label className="form-label">

@@ -2,42 +2,29 @@ import React from "react";
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { useSelector,useDispatch } from "react-redux";
+import { loginUser } from "../feature/auth/AuthSlice";
 
-const LoginForm = ({updateAuth}) => {
+const backend = "http://localhost:3000/";
+const LoginForm = () => {
     const [username, setUsername]  = useState('');
     const [password, setPassword] = useState('');
 
     const navigate = useNavigate();
-
+    const dispatch = useDispatch()
+    const {
+        loading,userInfo,error,succes,userToken
+    } = useSelector(
+        (state)=>state.auth
+        )
     const submit = (e) => {
         e.preventDefault();
-        axios.post("http://localhost:3000/login",
-            {
-                username: username,
-                password:password
-            }
-        ).then(response => {
-            if (response.data.data.success === true) {
-                console.log(response.data.data.token)
-               
-                updateAuth(response.data.data.token,
-                    response.data.data.user.username,
-                    response.data.data.user.id)
-                console.log(response.data.data.user.id);
-                navigate('/');
-                
-            }
-            else {
-                console.log(response.data.message);
-            }
-            
-            
-        }).catch (error => {
-            console.log(error.message);  
-         })
+        dispatch(loginUser({username:username,password:password}))
+        
     }
     return <div>
-        <p className="h2">Login</p>
+        <p className="h2">Login {userToken}</p>
             <form className="form-control" onSubmit={submit}>
                 <label className="form-label" >
                     Username
