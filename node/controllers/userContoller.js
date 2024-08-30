@@ -67,7 +67,7 @@ module.exports.login = async (req, res, next) => {
 };
 module.exports.retrive = async (req, res, next) => {
     try {
-        console.log(req.headers.authorization)
+       // console.log(req.headers.authorization)
         token = req.headers.authorization
         if (token) {
             jwt.verify(token.split(" ")[1], process.env.BACK_END_SECRET_KEY, (err, decoded) => {

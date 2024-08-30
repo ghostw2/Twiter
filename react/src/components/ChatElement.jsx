@@ -44,11 +44,13 @@ const ChatElement = ({userInfo,token}) => {
     });
   }, [currentChat])
   useEffect(() => {
-    const socket = new WebSocket(SOCKET_SERVER_URL);
+    const socket = new WebSocket(SOCKET_SERVER_URL+`?token=${token}`);
     socket.addEventListener('open', (event) => {
       console.log('websocker opened');
     })
     socket.addEventListener('message', (event) => {
+      const msg = JSON.parse(event.data)
+      setMessageList((prevMessageList) => [...prevMessageList, msg]);
       console.log('message form server:'+event.data)
     })
     socket.addEventListener('userConnected', (event) => {
@@ -114,11 +116,13 @@ const ChatElement = ({userInfo,token}) => {
     setMessage(message.trim())
     if(connection.current && connection.current.ReadyState === WebSocket.ReadyState){
       if (message !== "") { 
-        connection.current.send(JSON.parse({ message: { text: message, chat_id: currentChat, sender: userInfo.id }, token: token }));
-        }
+        connection.current.send(JSON.stringify(
+          { message: { text: message, chat_id: currentChat, sender: userInfo.id }, token: token }
+        ));
+      }
     }
     setMessage("")
-    console.log(token)
+   
    // const socket = io(SOCKET_SERVER_URL);  // re-initialize socket inside sendMessage
   //  socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
   //   setMessage('')

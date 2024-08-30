@@ -8,7 +8,6 @@ module.exports.loadById = async (req,res,next) => {
         const { chat_id } = req.body;
       //  if (chat_id !== null) chats = await Chat.find({ id: chat_id });
         const chats = await Chat.find({id:chat_id});
-        console.log(chats)
         return res.status(200).json({
             chats
         })
@@ -21,7 +20,6 @@ module.exports.loadById = async (req,res,next) => {
 module.exports.createChat = async (req, res, nex) => {
     
     try {
-        console.log(req.body)
         const { recivers } = req.body;
         const chat = new Chat({
             recivers: recivers

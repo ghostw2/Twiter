@@ -4,31 +4,99 @@ const jwt = require('jsonwebtoken');
 const Chat = require('../models/Chat');
 const ChatMessage = require("../models/ChatMessage");
 const Websocket = require('ws');
+const { authenticate } = require('passport');
+const passport = require('passport');
+const { parse } = require('dotenv');
+const url  = require('node:url')
 
 require('dotenv').config();
-
-const mountIoListener = (server) => {
-    const wss = new Websocket.Server({server})
-   
-    wss.on('connection', (ws) => {
-        console.log('client connected ')
-        ws.on('message', (message) => {
-            //const decodedMessage = JSON.parse(message.toString())
-
-           // console.log(JSON.parse(message));
-            const token = message.token
-            console.log(token)
-            if (token) {
-                
+let clients = new Map();
+function onSocketError(err) {
+    console.error(err);
+}
+function validateToken(token) {
+    if (token) {
+        return  jwt.verify(token.split(" ")[1], process.env.BACK_END_SECRET_KEY, (err, decoded) => {
+            if (err) {
+                console.log(JSON.stringify({ message: "There is an error in the token verification " + err.message }))
+                return false;
+            } else {
+                console.log(decoded,"inside validate token")
+                return decoded;
             }
+        })
+    } 
+}
+const mountIoListener = (server) => {
+    const wss = new Websocket.Server({ noServer: true })
+   
+    wss.on('connection', (ws,request,client) => {
+        ws.on('error', console.error);
+        console.log(client,"this is connnection")
+       // ws.emit("message",)
+        ws.on('message', async (message) => {
+            
+            //const decodedMessage = JSON.parse(message.toString())
+            const msg = JSON.parse(message).message
+            
+            const chatId = msg.chat_id;
+            const sender = msg.sender
+            const text = msg.text;
+            let createdMessage = null;
+            console.log(sender,chatId,text)
+            if (chatId) {
+                const chat = await Chat.findById(chatId);
+                if (chat) {
+                    const newMessage = new ChatMessage({
+                        chat_id: chat.id,
+                            sender: sender,
+                            message: text,
+                        createdAt: new Date()
+                    })
+                    createdMessage = await newMessage.save();
+                }
+                
+                ws.send(JSON.stringify(createdMessage))
+                // chat.recivers.array.forEach(reciver => {
+                //     console.log(createdMessage)
+                //     //if (reciver.id !== sender) {
+                //         ws.send(createdMessage)
+                //     //}
+                // });
+            }
+           
+
+            
+            //find chat 
+            //insert message to db
+            //broadcastmessage to users//
             console.log(`message recived ${message}`);
-            ws.send(message)
+    
         })
         ws.on('close', () => {
+            clients.delete(client.id)
             console.log('client disconnected')
             
         })
 
+    })
+    server.on('upgrade', function upgrade(request, socket, head) {
+        socket.on('error', onSocketError)
+        const parsedUrl = url.parse(request.url,true)
+        const token = parsedUrl.query.token;
+        const client = validateToken(token);
+        if (client) {     
+            socket.removeListener("error", onSocketError)
+            wss.handleUpgrade(request, socket, head, function done(ws) {
+                clients.set(client.id ,{ws,client})
+                wss.emit('connection',ws,request,client)
+            })
+        } else {
+            console.log("error")
+            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+            socket.destroy();
+        }
+        
     })
     
     // io.use((socket, next) => {

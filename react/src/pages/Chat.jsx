@@ -8,7 +8,7 @@ const Chat = () => {
   
     return userToken ? <div>
                             <h2>{userInfo.username} here you can chat will all you friends</h2>
-                            <ChatElement id={userInfo} token={userToken}/>
+                            <ChatElement userInfo={userInfo} token={userToken}/>
                         </div>:<Navigate to='/login'/>
 }
 export default Chat;
