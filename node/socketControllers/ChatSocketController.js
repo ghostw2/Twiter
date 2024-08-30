@@ -43,7 +43,6 @@ const mountIoListener = (server) => {
             const sender = msg.sender
             const text = msg.text;
             let createdMessage = null;
-            console.log(sender,chatId,text)
             if (chatId) {
                 const chat = await Chat.findById(chatId);
                 if (chat) {
@@ -55,14 +54,14 @@ const mountIoListener = (server) => {
                     })
                     createdMessage = await newMessage.save();
                 }
-                
-                ws.send(JSON.stringify(createdMessage))
-                // chat.recivers.array.forEach(reciver => {
-                //     console.log(createdMessage)
-                //     //if (reciver.id !== sender) {
-                //         ws.send(createdMessage)
-                //     //}
-                // });
+            
+                chat.recivers.forEach((reciver) => {
+                    console.log(reciver)
+                    const reciverWs = clients.get(reciver.toString()).ws;
+                    //if (reciver.id !== sender) {
+                        reciverWs.send(JSON.stringify(createdMessage))
+                    //}
+                });
             }
            
 
@@ -88,7 +87,7 @@ const mountIoListener = (server) => {
         if (client) {     
             socket.removeListener("error", onSocketError)
             wss.handleUpgrade(request, socket, head, function done(ws) {
-                clients.set(client.id ,{ws,client})
+                clients.set(client.id ,{ws:ws,clinet:client})
                 wss.emit('connection',ws,request,client)
             })
         } else {
