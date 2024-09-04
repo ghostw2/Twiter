@@ -2,12 +2,18 @@ const { response } = require("express");
 const Chat = require("../models/Chat")
 const ChatMessage = require("../models/ChatMessage");
 
-module.exports.loadById = async (req,res,next) => {
+module.exports.loadByUser = async (req,res,next) => {
     try { 
         
-        const { chat_id } = req.body;
+        const  user_id  = req.query.user_id;
       //  if (chat_id !== null) chats = await Chat.find({ id: chat_id });
-        const chats = await Chat.find({id:chat_id});
+        const chats = await Chat.find(
+            {
+                recivers: {
+                    $in : [user_id]
+                }
+            }
+        ).populate('recivers');
         return res.status(200).json({
             chats
         })

@@ -5,8 +5,7 @@ import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 const Chat = () => {
     const { userInfo, userToken } = useSelector((state)=>state.auth);
-  
-    return userToken ? <div>
+    return userInfo != undefined ? <div>
                             <h2>{userInfo.username} here you can chat will all you friends</h2>
                             <ChatElement userInfo={userInfo} token={userToken}/>
                         </div>:<Navigate to='/login'/>

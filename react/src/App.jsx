@@ -11,16 +11,15 @@ import Register from "./pages/Register";
 import Chat from "./pages/Chat";
 import { Provider } from 'react-redux';
 import store from './app/store'
-import { AuthProvider,useAuth } from "./components/AuthContext"; 
 import { useSelector, useDispatch } from "react-redux";
 import { retriveUser } from "./feature/auth/AuthSlice";
 
 
 export default function App() {
   const dispatch = useDispatch()
-  const { userToken } = useSelector((state)=>state.auth)
+  const { userToken,userInfo } = useSelector((state)=>state.auth)
   useEffect(() => {
-    if (userToken != null) {
+    if (userInfo != undefined) {
       dispatch(retriveUser({userToken}))
     }
   },[])

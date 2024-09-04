@@ -20,7 +20,10 @@ const ChatElement = ({userInfo,token}) => {
   
   useEffect(() => {
     
-    axiosInstance.get('/chat').then((response) => {
+    axiosInstance.get('/chat', {
+        params: { user_id: userInfo.id }
+      }
+    ).then((response) => {
       if (response.status === 200) {
         setChatList(response.data.chats);
       }
@@ -28,7 +31,7 @@ const ChatElement = ({userInfo,token}) => {
     }).catch((e) => {
       alert(e.message);
     });
-  }, []);
+  }, [userInfo.id]);
   useEffect(() => {
     if (currentChat === '') return;
     console.log(currentChat)
@@ -150,8 +153,8 @@ const ChatElement = ({userInfo,token}) => {
             <ul className="list-group mt-4">
 
               {chatList.map((chat, index) => (
-               <li role='button' key={index}  className="list-group-item p-4" >
-                  <a onClick={(e) => { e.preventDefault(); setCurrentChat(chat._id); }} >this is chat #{chat._id}</a>
+               <li  key={index}  className="list-group-item p-4" >
+                  <a onClick={(e) => { e.preventDefault(); setCurrentChat(chat._id); }} >{chat.recivers.map(reciver => reciver.username).join(",")}</a>
                 </li>
               ))}
             </ul>
