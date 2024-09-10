@@ -41,6 +41,7 @@ const ChatElement = ({userInfo,token}) => {
       }).then((response) => {
       if (response.status === 200) {
         setMessageList(response.data.messages);
+        console.log(response.data.messages)
       }
     }).catch((e) => {
       alert(e.message);
@@ -130,14 +131,31 @@ const ChatElement = ({userInfo,token}) => {
   //  socketRef.current.emit('sendMessage', { text: message, chat_id: currentChat, sender: id });
   //   setMessage('')
   };
-  
+  function timeSince(date) { 
+    const now = new Date();
+    const convertedDate = new Date(date);
+    const seconds = Math.floor((now - convertedDate) / 1000);
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return `${interval} years ago `;
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return `${interval} months ago `;
+    interval = Math.floor(seconds / 86400); // Days
+    if (interval > 1) return `${interval} days ago`;
+
+    interval = Math.floor(seconds / 3600); // Hours
+    if (interval > 1) return `${interval} hours ago`;
+
+    interval = Math.floor(seconds / 60); // Minutes
+    if (interval > 1) return `${interval} minutes ago`;
+    return `${Math.floor(seconds)} seconds ago`;
+  }
 
   return (
     <div>
       
       <div className='container bg-light p-3'>
         <div className='row'>
-          <div className='col-md-3 col-12'>
+          <div className='col-md-3 col-6'>
             <div className='w-75 mx-auto'>
               <input
                 type="text"
@@ -153,28 +171,50 @@ const ChatElement = ({userInfo,token}) => {
             <ul className="list-group mt-4">
 
               {chatList.map((chat, index) => (
-               <li  key={index}  className="list-group-item p-4" >
-                  <a onClick={(e) => { e.preventDefault(); setCurrentChat(chat._id); }} >{chat.recivers.map(reciver => reciver.username).join(",")}</a>
+                <li key={index} className="list-group-item p-0 d-flex" >
+                  {
+                    chat._id === currentChat &&
+                    <a className='bg-primary p-2 text-light text-decoration-none w-100' onClick={(e) => { e.preventDefault(); setCurrentChat(chat._id); }} >
+                      {chat.recivers.map(reciver => reciver.username).join(",")}
+                    </a> 
+                  }
+                  { 
+                    chat._id !== currentChat &&
+                    <a className='p-2 text-decoration-none' onClick={(e) => { e.preventDefault(); setCurrentChat(chat._id); }} >
+                        {chat.recivers.map(reciver => reciver.username).join(",")}
+                    </a>
+                
+                  }
                 </li>
               ))}
             </ul>
           </div>
-          <div className='col-md-6 col-12 bg-white'>
+          <div className='col-md-6 col-6 bg-white'>
             <div className='row p-2 rounded-3'>
               {messageList.map((msg, index) => (
                 <div key={index} className='col-12'>
                   <div className='row'>
                     {
-                      msg.sender === userInfo.id && (
-                        <div className='col-6 offset-6 rounded-pill p-2 px-3' style={{backgroundColor:'green'}}>
-                          <span>{msg.message}</span>
+                      msg.sender._id === userInfo.id && (
+                        <div className='col-6 offset-6 rounded-pill p-2 px-3 mb-1' style={{backgroundColor:'green'}}>
+                          <p className='p-0 m-0'>{msg.message}
+                            <br></br>
+                            <span className='text-light small font-italic'>You</span>
+                            &nbsp;&nbsp;&nbsp;
+                            <span className='text-light '>{ timeSince(msg.createdAt)}</span>
+                          </p>
                         </div>
                       ) 
                     }
                     {
-                      msg.sender !== userInfo.id && (
-                        <div className={`col-6 rounded-pill p-2 px-3`} style={{ backgroundColor: 'red' }}>
-                          <span>{msg.message}</span>
+                      msg.sender._id !== userInfo.id && (
+                        <div className={`col-6 rounded-pill p-2 px-3 mb-1`} style={{ backgroundColor: 'red' }}>
+                          <p className='p-0 m-0'>{msg.message}
+                            <br></br>
+                            <span className='text-light small font-italic'>by {msg.sender.username}</span>
+                            &nbsp;&nbsp;&nbsp;
+                            <span className='text-light '>{ timeSince(msg.createdAt)}</span>
+                          </p>
                         </div>
                       )
                     }

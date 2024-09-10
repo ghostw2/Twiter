@@ -43,7 +43,7 @@ module.exports.createChat = async (req, res, nex) => {
 }
 module.exports.loadChatMessages = async (req,res,next) => {
     try {
-        const messages = await ChatMessage.find({ chat_id: req.query.id });
+        const messages = await ChatMessage.find({ chat_id: req.query.id }).populate('sender');
         return res.status(200).json({
             messages
         }); 
